@@ -50,11 +50,11 @@ object MainWithAsync extends App {
       val c5 = cActor.ask("ScalikeJDBC, Inc." + DateTime.now.getMillis)
       */
       for {
-        c <- cActor.ask(("ScalikeJDBC, Inc." + DateTime.now.getMillis, tx))
-        c <- cActor.ask(("ScalikeJDBC, Inc." + DateTime.now.getMillis, tx))
-        c <- cActor.ask(("ScalikeJDBC, Inc." + DateTime.now.getMillis, tx))
-        c <- cActor.ask(("ScalikeJDBC, Inc." + DateTime.now.getMillis, tx))
-        c <- cActor.ask(("ScalikeJDBC, Inc." + DateTime.now.getMillis, tx))
+        c <- cActor.ask(Message("ScalikeJDBC, Inc." + DateTime.now.getMillis, tx))
+        c <- cActor.ask(Message("ScalikeJDBC, Inc." + DateTime.now.getMillis, tx))
+        c <- cActor.ask(Message("ScalikeJDBC, Inc." + DateTime.now.getMillis, tx))
+        c <- cActor.ask(Message("ScalikeJDBC, Inc." + DateTime.now.getMillis, tx))
+        c <- cActor.ask(Message("ScalikeJDBC, Inc." + DateTime.now.getMillis, tx))
       } yield()
     }
 
@@ -65,13 +65,14 @@ object MainWithAsync extends App {
   }
 }
 
+final case class Message(name: String, tx: TxAsyncDBSession)
+
 class CompanyActor extends Actor {
   implicit val session = AsyncDB.sharedSession
 
   def receive = {
-    case x:(String, EC) =>
-      implicit val ec = x._2
+    case Message(name, tx) =>
       println(session.toString)
-      Company.create(x._1, Some("http://scalikejdbc.org/")).pipeTo(sender())
+      Company.create(name, Some("http://scalikejdbc.org/"))(tx, implicitly).pipeTo(sender())
   }
 }
